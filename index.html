@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b55">
+<title>برنامه‌ریز من</title>
+<style>
+body{font-family:Tahoma,Arial,sans-serif;background:#f1f6f3;color:#20342b;margin:0;padding:20px}
+main{max-width:520px;margin:auto}
+header{background:#176b55;color:white;padding:22px;border-radius:20px;margin-bottom:16px}
+h1{font-size:25px;margin:8px 0}
+.card{background:white;border-radius:16px;padding:16px;margin:14px 0}
+input,select,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #d8e3dc}
+#task{width:90%;margin-bottom:10px}
+button{cursor:pointer}
+.add{background:#176b55;color:white;width:100%;border:0}
+.item{display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;padding:12px 0}
+.item span{flex:1;overflow-wrap:anywhere}
+.item.done span{text-decoration:line-through;color:#888}
+.delete{border:0;background:#fff0ee;color:#a33}
+#progress{font-size:20px;font-weight:bold}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>دفتر شخصی تو</div>
+  <h1>برنامه‌ریز من</h1>
+  <div id="today"></div>
+  <p>پیشرفت امروز: <span id="progress">۰٪</span></p>
+</header>
+<section class="card">
+  <h3>افزودن کار جدید</h3>
+  <form id="form">
+    <input id="task" placeholder="مثلاً مطالعه روزانه..." required>
+    <select id="category">
+      <option>شخصی</option>
+      <option>کار</option>
+      <option>سلامتی</option>
+      <option>یادگیری</option>
+      <option>خانواده</option>
+    </select>
+    <button class="add" type="submit">＋ افزودن کار</button>
+  </form>
+</section>
+<section class="card">
+  <h3>فهرست کارها</h3>
+  <div id="list"></div>
+  <button id="clear">حذف کارهای انجام‌شده</button>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let tasks=[];
+try{tasks=JSON.parse(localStorage.getItem('daily-planner-tasks')||'[]')}catch(e){}
+$('today').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+function render(){
+  const done=tasks.filter(t=>t.done).length;
+  $('progress').textContent=(tasks.length?Math.round(done/tasks.length*100):0).toLocaleString('fa-IR')+'٪';
+  $('list').replaceChildren();
+  if(!tasks.length){$('list').textContent='هنوز کاری اضافه نکرده‌ای.';return}
+  tasks.forEach(t=>{
+    const row=document.createElement('div');row.className='item'+(t.done?' done':'');
+    const check=document.createElement('input');check.type='checkbox';check.checked=t.done;
+    check.onchange=()=>{t.done=check.checked;save()};
+    const label=document.createElement('span');label.textContent=t.title+' — '+t.category;
+    const del=document.createElement('button');del.textContent='حذف';del.className='delete';
+    del.onclick=()=>{tasks=tasks.filter(x=>x.id!==t.id);save()};
+    row.append(check,label,del);$('list').append(row);
+  });
+}
+function save(){localStorage.setItem('daily-planner-tasks',JSON.stringify(tasks));render()}
+$('form').onsubmit=e=>{
+  e.preventDefault();
+  const title=$('task').value.trim();if(!title)return;
+  tasks.unshift({id:Date.now(),title,category:$('category').value,done:false});
+  $('task').value='';save();
+};
+$('clear').onclick=()=>{
+  if(confirm('کارهای انجام‌شده حذف شوند؟')){
+    tasks=tasks.filter(t=>!t.done);save();
+  }
+};
+render();
+</script>
+</body>
+</html>

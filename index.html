@@ -4,86 +4,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#176b55">
-<title>برنامه‌ریز من</title>
+<meta name="theme-color" content="#176b5b">
+<title>برنامه‌ریز روزانه من</title>
 <style>
-body{font-family:Tahoma,Arial,sans-serif;background:#f1f6f3;color:#20342b;margin:0;padding:20px}
-main{max-width:520px;margin:auto}
-header{background:#176b55;color:white;padding:22px;border-radius:20px;margin-bottom:16px}
-h1{font-size:25px;margin:8px 0}
-.card{background:white;border-radius:16px;padding:16px;margin:14px 0}
-input,select,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #d8e3dc}
-#task{width:90%;margin-bottom:10px}
-button{cursor:pointer}
-.add{background:#176b55;color:white;width:100%;border:0}
-.item{display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;padding:12px 0}
-.item span{flex:1;overflow-wrap:anywhere}
-.item.done span{text-decoration:line-through;color:#888}
-.delete{border:0;background:#fff0ee;color:#a33}
-#progress{font-size:20px;font-weight:bold}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6f5;color:#24332f;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif}
+main{max-width:560px;margin:auto;padding:18px 14px 35px}
+header{background:#176b5b;color:white;padding:23px 19px;border-radius:20px;margin-bottom:16px}
+header h1{font-size:24px;margin:0 0 8px}
+header p{margin:0;color:#dceee9;font-size:14px}
+.panel{background:white;border-radius:17px;padding:16px;margin-bottom:14px;box-shadow:0 3px 14px #173d3010}
+.date-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.date-nav button{background:#e8f3ef;color:#176b5b;border:0;border-radius:11px;padding:10px 14px;font-size:18px}
+#dateText{text-align:center;font-weight:700;font-size:15px}
+#gregorian{text-align:center;color:#78847e;font-size:12px;margin-top:6px}
+.progress-head{display:flex;justify-content:space-between;margin:17px 0 8px;font-size:13px}
+.track{height:9px;background:#e7eeeb;border-radius:20px;overflow:hidden}
+#progressBar{height:100%;width:0;background:#24a17e;transition:width .2s}
+h2{font-size:17px;margin:0 0 13px}
+label{display:block;font-size:13px;color:#52625c;margin-bottom:7px}
+input,select{width:100%;padding:12px;border:1px solid #dce5e1;border-radius:11px;font:inherit;font-size:15px;background:white;color:#24332f}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0}
+button{font:inherit;cursor:pointer}
+.primary{border:0;background:#176b5b;color:white;border-radius:11px;padding:12px 15px;font-weight:600}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+#taskList{list-style:none;padding:0;margin:0}
+.task{display:flex;align-items:flex-start;gap:10px;border:1px solid #e7ece9;padding:12px 9px;border-radius:12px;margin-top:9px}
+.task input[type=checkbox]{width:20px;height:20px;margin:3px 0 0;accent-color:#176b5b;flex-shrink:0}
+.task-main{flex:1;min-width:0}
+.task-text{font-size:15px;overflow-wrap:anywhere;line-height:1.7}
+.task.done .task-text{text-decoration:line-through;color:#8b9691}
+.meta{font-size:12px;color:#7c8983;margin-top:5px}
+.priority{display:inline-block;padding:3px 7px;border-radius:7px;margin-left:5px}
+.high{background:#fde9e7;color:#b23c32}
+.medium{background:#fff2d8;color:#946300}
+.low{background:#e5f4eb;color:#26734b}
+.delete{border:0;background:#fff0ee;color:#b33b31;border-radius:9px;padding:7px 9px;font-size:13px}
+.empty{text-align:center;color:#87938d;padding:22px 5px;font-size:14px}
+.foot{text-align:center;color:#84918b;font-size:12px;margin-top:16px}
+@media(max-width:380px){
+.addrow{flex-wrap:wrap}
+.addrow input{flex-basis:100%}
+.fields{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div>دفتر شخصی تو</div>
-  <h1>برنامه‌ریز من</h1>
-  <div id="today"></div>
-  <p>پیشرفت امروز: <span id="progress">۰٪</span></p>
+<h1>برنامه‌ریز روزانه من</h1>
+<p>هر روز، یک قدم به هدف‌هایت نزدیک‌تر شو.</p>
 </header>
-<section class="card">
-  <h3>افزودن کار جدید</h3>
-  <form id="form">
-    <input id="task" placeholder="مثلاً مطالعه روزانه..." required>
-    <select id="category">
-      <option>شخصی</option>
-      <option>کار</option>
-      <option>سلامتی</option>
-      <option>یادگیری</option>
-      <option>خانواده</option>
-    </select>
-    <button class="add" type="submit">＋ افزودن کار</button>
-  </form>
+
+<section class="panel">
+<div class="date-nav">
+<button id="prevDay" aria-label="روز قبل">→</button>
+<div>
+<div id="dateText">تاریخ امروز</div>
+<div id="gregorian"></div>
+</div>
+<button id="nextDay" aria-label="روز بعد">←</button>
+</div>
+<div class="progress-head">
+<span>پیشرفت کارهای این روز</span>
+<strong id="progressText">۰٪</strong>
+</div>
+<div class="track"><div id="progressBar"></div></div>
 </section>
-<section class="card">
-  <h3>فهرست کارها</h3>
-  <div id="list"></div>
-  <button id="clear">حذف کارهای انجام‌شده</button>
+
+<section class="panel">
+<h2>افزودن کار جدید</h2>
+<form id="taskForm">
+<label for="taskInput">چه کاری باید انجام بدهی؟</label>
+<div class="addrow">
+<input id="taskInput" maxlength="200" placeholder="مثلاً مطالعه یک فصل" required>
+<button class="primary" type="submit">افزودن +</button>
+</div>
+<div class="fields">
+<div>
+<label for="priority">اولویت</label>
+<select id="priority">
+<option value="medium">متوسط</option>
+<option value="high">زیاد</option>
+<option value="low">کم</option>
+</select>
+</div>
+<div>
+<label for="category">دسته‌بندی</label>
+<select id="category">
+<option value="شخصی">شخصی</option>
+<option value="کار">کار</option>
+<option value="مطالعه">مطالعه</option>
+<option value="سلامتی">سلامتی</option>
+<option value="متفرقه">متفرقه</option>
+</select>
+</div>
+</div>
+</form>
 </section>
+
+<section class="panel">
+<h2 id="listTitle">کارهای امروز</h2>
+<ul id="taskList"></ul>
+<div id="emptyState" class="empty">
+هنوز کاری ثبت نکرده‌ای.<br>
+اولین برنامه‌ات را اضافه کن.
+</div>
+</section>
+<div class="foot">کارها به‌صورت خودکار در همین مرورگر ذخیره می‌شوند.</div>
 </main>
+
 <script>
-const $=id=>document.getElementById(id);
-let tasks=[];
-try{tasks=JSON.parse(localStorage.getItem('daily-planner-tasks')||'[]')}catch(e){}
-$('today').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-function render(){
-  const done=tasks.filter(t=>t.done).length;
-  $('progress').textContent=(tasks.length?Math.round(done/tasks.length*100):0).toLocaleString('fa-IR')+'٪';
-  $('list').replaceChildren();
-  if(!tasks.length){$('list').textContent='هنوز کاری اضافه نکرده‌ای.';return}
-  tasks.forEach(t=>{
-    const row=document.createElement('div');row.className='item'+(t.done?' done':'');
-    const check=document.createElement('input');check.type='checkbox';check.checked=t.done;
-    check.onchange=()=>{t.done=check.checked;save()};
-    const label=document.createElement('span');label.textContent=t.title+' — '+t.category;
-    const del=document.createElement('button');del.textContent='حذف';del.className='delete';
-    del.onclick=()=>{tasks=tasks.filter(x=>x.id!==t.id);save()};
-    row.append(check,label,del);$('list').append(row);
-  });
+(function(){
+'use strict';
+
+var STORAGE_KEY='dailyPlannerByDate';
+var OLD_KEY='dailyTasks';
+var currentDate=new Date();
+currentDate.setHours(12,0,0,0);
+var data={};
+
+function dateKey(d){
+return d.getFullYear()+'-'+
+String(d.getMonth()+1).padStart(2,'0')+'-'+
+String(d.getDate()).padStart(2,'0');
 }
-function save(){localStorage.setItem('daily-planner-tasks',JSON.stringify(tasks));render()}
-$('form').onsubmit=e=>{
-  e.preventDefault();
-  const title=$('task').value.trim();if(!title)return;
-  tasks.unshift({id:Date.now(),title,category:$('category').value,done:false});
-  $('task').value='';save();
+
+function todayKey(){
+return dateKey(new Date());
+}
+
+function loadData(){
+try{
+var saved=localStorage.getItem(STORAGE_KEY);
+if(saved){
+data=JSON.parse(saved)||{};
+return;
+}
+var old=localStorage.getItem(OLD_KEY);
+if(old){
+var tasks=JSON.parse(old);
+if(Array.isArray(tasks)&&tasks.length){
+data[todayKey()]=tasks.map(function(t,i){
+return {
+id:String(Date.now()+i),
+text:String(t.text||t.title||''),
+done:!!t.done,
+priority:'medium',
+category:'شخصی'
 };
-$('clear').onclick=()=>{
-  if(confirm('کارهای انجام‌شده حذف شوند؟')){
-    tasks=tasks.filter(t=>!t.done);save();
-  }
-};
+}).filter(function(t){return t.text;});
+saveData();
+}
+}
+}catch(e){
+data={};
+}
+}
+
+function saveData(){
+try{
+localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+}catch(e){
+alert('ذخیره انجام نشد. فضای خالی مرورگر را بررسی کن.');
+}
+}
+
+function tasksForDay(){
+var key=dateKey(currentDate);
+if(!Array.isArray(data[key]))data[key]=[];
+return data[key];
+}
+
+function persianDate(d){
+return new Intl.DateTimeFormat(
+'fa-IR-u-ca-persian',
+{weekday:'long',day:'numeric',month:'long',year:'numeric'}
+).format(d);
+}
+
+function render(){
+var key=dateKey(currentDate);
+document.getElementById('dateText').textContent=persianDate(currentDate);
+document.getElementById('gregorian').textContent=
+'تاریخ میلادی: '+new Intl.DateTimeFormat(
+'en-GB',
+{year:'numeric',month:'2-digit',day:'2-digit'}
+).format(currentDate);
+
+document.getElementById('listTitle').textContent=
+key===todayKey()?'کارهای امروز':'کارهای '+persianDate(currentDate);
+
+var tasks=tasksForDay();
+var list=document.getElementById('taskList');
+list.textContent='';
+
+document.getElementById('emptyState').style.display=
+tasks.length?'none':'block';
+
+tasks.forEach(function(task){
+var li=document.createElement('li');
+li.className='task'+(task.done?' done':'');
+
+var check=document.createElement('input');
+check.type='checkbox';
+check.checked=!!task.done;
+check.setAttribute('aria-label','انجام شد');
+
+check.addEventListener('change',function(){
+task.done=check.checked;
+saveData();
 render();
+});
+
+var main=document.createElement('div');
+main.className='task-main';
+
+var name=document.createElement('div');
+name.className='task-text';
+name.textContent=task.text;
+
+var meta=document.createElement('div');
+meta.className='meta';
+
+var p=document.createElement('span');
+p.className='priority '+
+(task.priority==='high'?'high':
+task.priority==='low'?'low':'medium');
+p.textContent=task.priority==='high'?'اولویت زیاد':
+task.priority==='low'?'اولویت کم':'اولویت متوسط';
+meta.appendChild(p);
+
+var cat=document.createElement('span');
+cat.textContent=task.category||'شخصی';
+meta.appendChild(cat);
+
+main.appendChild(name);
+main.appendChild(meta);
+
+var del=document.createElement('button');
+del.className='delete';
+del.type='button';
+del.textContent='حذف';
+
+del.addEventListener('click',function(){
+if(confirm('این کار حذف شود؟')){
+data[key]=tasksForDay().filter(function(t){
+return t.id!==task.id;
+});
+saveData();
+render();
+}
+});
+
+li.appendChild(check);
+li.appendChild(main);
+li.appendChild(del);
+list.appendChild(li);
+});
+
+var done=tasks.filter(function(t){return t.done;}).length;
+var percent=tasks.length?Math.round(done/tasks.length*100):0;
+
+document.getElementById('progressText').textContent=
+new Intl.NumberFormat('fa-IR').format(percent)+'٪';
+document.getElementById('progressBar').style.width=percent+'%';
+}
+
+document.getElementById('taskForm').addEventListener('submit',function(e){
+e.preventDefault();
+var input=document.getElementById('taskInput');
+var value=input.value.trim();
+if(!value)return;
+
+tasksForDay().push({
+id:String(Date.now())+'-'+Math.random().toString(36).slice(2,8),
+text:value,
+done:false,
+priority:document.getElementById('priority').value,
+category:document.getElementById('category').value
+});
+
+saveData();
+input.value='';
+render();
+input.focus();
+});
+
+document.getElementById('prevDay').addEventListener('click',function(){
+currentDate.setDate(currentDate.getDate()-1);
+render();
+});
+
+document.getElementById('nextDay').addEventListener('click',function(){
+currentDate.setDate(currentDate.getDate()+1);
+render();
+});
+
+loadData();
+render();
+})();
 </script>
 </body>
 </html>
